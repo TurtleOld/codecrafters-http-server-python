@@ -16,8 +16,13 @@ def main():
             data = connection.recv(1024)
             if not data:
                 break
-            if b' / ' in data:
+            path = data.decode().split()[1]
+            if path == "/":
                 connection.send(b'HTTP/1.1 200 OK\r\n\r\n')
+            elif path.startswith("/echo"):
+                echo = path[6:]
+                response = f'HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {len(echo)}\r\n\n{echo}\r\n\r\n'
+                connection.send(response.encode())
             else:
                 connection.send(b'HTTP/1.1 404 Not Found\r\n\r\n')
             
