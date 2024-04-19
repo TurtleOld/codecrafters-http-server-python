@@ -16,7 +16,12 @@ def main():
             data = connection.recv(1024)
             if not data:
                 break
-            connection.send(b'HTTP/1.1 200 OK\r\n\r\n')
+            header = parse_header(data.decode("utf-8"))
+            if header.path == '/':
+                connection.send(b'HTTP/1.1 200 OK\r\n\r\n')
+            else:
+                connection.send(b'HTTP/1.1 404 Not Found\r\n\r\n')
+            
 
 
 if __name__ == "__main__":
