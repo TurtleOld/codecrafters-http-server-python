@@ -15,6 +15,7 @@ def client_handler(connection, directory=None):
                 break
             
             data = data.decode('utf-8')
+            method = data.split()[0]
             path = data.split()[1]
             if path == '/':
                 response = 'HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n'
@@ -27,7 +28,7 @@ def client_handler(connection, directory=None):
                 user_agent = data.split()[6] if len(data.split()) > 6 else ''
                 response = f'HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {len(user_agent)}\r\n\r\n{user_agent}'
                 connection.sendall(response.encode())
-            elif path.startswith('/files'):
+            elif path.startswith('/files') and method == 'GET':
                 file = path[7:]
                 path_file = f'{directory}{file}'
                 exists = os.path.exists(path_file)
@@ -41,6 +42,17 @@ def client_handler(connection, directory=None):
                 else:
                     response = 'HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n'
                     connection.sendall(response.encode())
+            elif path.startswith('/files') and method == 'POST':
+                print(f'METHOD: {method}')
+                file = path[7:]
+                path_file = f'{directory}{file}'
+                body = data.split('\r\n')[6] if len(
+                    data.split()) > 6 else ''
+                print(body)
+                with open(path_file, 'wb') as file1:
+                    file1.write(body.encode())
+                response = "HTTP/1.1 201 Created\r\n\r\n"
+                connection.sendall(response.encode())
             else:
                 response = 'HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n'
                 connection.sendall(response.encode())
